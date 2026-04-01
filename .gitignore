@@ -1,0 +1,10 @@
+node_modules/
+dist/
+client/dist/
+.npm-cache/
+.env
+.env.local
+dev.log
+dev.err
+backend/cache/yandex-usage.json
+!backend/cache/.gitkeep
