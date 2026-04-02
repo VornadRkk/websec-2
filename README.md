@@ -47,16 +47,17 @@ npm install
 
 ```bash
 YANDEX_RASP_API_KEY=<КЛЮЧ>
+YANDEX_API_BASE=https://api.rasp.yandex-net.ru/v3.0
+YANDEX_API_LANG=ru_RU
 API_PORT=8787
 YANDEX_DAILY_BUDGET=450
 YANDEX_STATION_CACHE_MINUTES=360
 ```
 
-Шаблон также есть в файле `.env.example`.
+Шаблон также есть в `.env.example`.
 
 
-
-### 3.Сборка и запуск
+### 3. Production-сборка и запуск
 
 ```bash
 npm run build

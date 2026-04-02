@@ -1,59 +1,5 @@
 import { formatDateTime, formatDuration } from '../lib/formatters.js';
-
-function sameStationSelection(station, value) {
-  if (!station) {
-    return false;
-  }
-
-  const normalizedValue = String(value || '').trim().toLowerCase();
-
-  return [station.title, station.popularTitle, station.shortTitle]
-    .filter(Boolean)
-    .some((title) => String(title).trim().toLowerCase() === normalizedValue);
-}
-
-function SearchBox({
-  label,
-  value,
-  onChange,
-  loading,
-  error,
-  suggestions,
-  onSelect,
-  selectedStation,
-}) {
-  const showSuggestions = suggestions.length > 0 && !sameStationSelection(selectedStation, value);
-
-  return (
-    <div className="search-box">
-      <label className="field-label">
-        <span>{label}</span>
-        <input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Введите станцию" />
-      </label>
-
-      {selectedStation ? (
-        <div className="selected-station-pill">
-          <strong>{selectedStation.title}</strong>
-          <span>{selectedStation.settlementTitle || selectedStation.regionTitle || 'Станция выбрана'}</span>
-        </div>
-      ) : null}
-
-      {loading ? <p className="field-hint">Ищу станции...</p> : null}
-      {error ? <p className="error-inline">{error}</p> : null}
-
-      {showSuggestions ? (
-        <div className="suggestions">
-          {suggestions.slice(0, 6).map((station) => (
-            <button key={station.code} type="button" className="suggestion" onClick={() => onSelect(station)}>
-              <strong>{station.title}</strong>
-              <span>{station.settlementTitle || station.regionTitle || 'Станция'}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
+import { StationSearchBox } from './StationSearchBox.jsx';
 
 export function RoutePlanner({
   fromQuery,
@@ -94,7 +40,7 @@ export function RoutePlanner({
 
       <div className="route-form">
         <div className="route-form__grid">
-          <SearchBox
+          <StationSearchBox
             label="Откуда"
             value={fromQuery}
             onChange={onFromQueryChange}
@@ -109,7 +55,7 @@ export function RoutePlanner({
             Поменять
           </button>
 
-          <SearchBox
+          <StationSearchBox
             label="Куда"
             value={toQuery}
             onChange={onToQueryChange}
@@ -151,17 +97,17 @@ export function RoutePlanner({
         </div>
       </div>
 
-      {error ? <p className="error-banner">{error}</p> : null}
+      {error && <p className="error-banner">{error}</p>}
 
-      {!error && !loading && results.length === 0 ? (
+      {!error && !loading && results.length === 0 && (
         <p className="panel__empty">
           {routeReady
             ? 'Станции выбраны. Нажмите кнопку поиска, чтобы получить маршруты.'
             : 'Подберите две станции из подсказок и нажмите кнопку поиска маршрута.'}
         </p>
-      ) : null}
+      )}
 
-      {results.length > 0 ? (
+      {results.length > 0 && (
         <div className="route-results">
           {results.map((route) => (
             <article key={route.uid} className="route-card">
@@ -194,7 +140,7 @@ export function RoutePlanner({
             </article>
           ))}
         </div>
-      ) : null}
+      )}
     </section>
   );
 }

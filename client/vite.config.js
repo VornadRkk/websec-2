@@ -8,8 +8,7 @@ const __dirname = path.dirname(__filename);
 const clientRoot = __dirname;
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const apiPort = env.API_PORT || env.PORT || '8787';
+  loadEnv(mode, process.cwd(), '');
 
   return {
     root: clientRoot,
@@ -17,9 +16,6 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '127.0.0.1',
       port: 5173,
-      proxy: {
-        '/api': `http://127.0.0.1:${apiPort}`,
-      },
     },
     preview: {
       host: '127.0.0.1',

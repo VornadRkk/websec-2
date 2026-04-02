@@ -2,8 +2,8 @@ import 'dotenv/config';
 import { withRequestCache } from './request-cache.js';
 import { reserveUsage, readUsage } from './yandex-usage.js';
 
-const API_BASE_URL = 'https://api.rasp.yandex-net.ru/v3.0';
-const DEFAULT_LANG = 'ru_RU';
+const API_BASE_URL = process.env.YANDEX_API_BASE || 'https://api.rasp.yandex-net.ru/v3.0';
+const DEFAULT_LANG = process.env.YANDEX_API_LANG || 'ru_RU';
 const DEFAULT_LIMIT = Number(process.env.YANDEX_DAILY_BUDGET || 450);
 const STATION_LIST_CACHE_MS = resolveStationListCacheMs();
 

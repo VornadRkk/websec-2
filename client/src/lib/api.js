@@ -1,5 +1,5 @@
 const clientCache = new Map();
-const devApiOrigin =
+const configuredApiOrigin =
   import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 
@@ -26,13 +26,14 @@ function setCached(cacheKey, value, ttlMs) {
 }
 
 function buildRequestCandidates(pathname) {
-  const urls = [pathname];
+  const urls = [];
 
-  if (devApiOrigin && window.location.origin !== devApiOrigin) {
-    urls.push(`${devApiOrigin}${pathname}`);
+  if (configuredApiOrigin && window.location.origin !== configuredApiOrigin) {
+    urls.push(`${configuredApiOrigin}${pathname}`);
   }
 
-  return urls;
+  urls.push(pathname);
+  return [...new Set(urls)];
 }
 
 async function performRequest(url, signal) {
@@ -49,13 +50,14 @@ async function performRequest(url, signal) {
 async function request(pathname, { signal, cacheKey, ttlMs = 0 } = {}) {
   if (cacheKey && ttlMs > 0) {
     const cachedValue = getCached(cacheKey);
+
     if (cachedValue) {
       return cachedValue;
     }
   }
 
   const candidates = buildRequestCandidates(pathname);
-  let lastNetworkError = null;
+  let lastError = null;
 
   for (const candidate of candidates) {
     try {
@@ -71,19 +73,12 @@ async function request(pathname, { signal, cacheKey, ttlMs = 0 } = {}) {
         throw error;
       }
 
-      if (error instanceof TypeError) {
-        lastNetworkError = error;
-        continue;
-      }
-
-      throw error;
+      lastError = error;
     }
   }
 
-  if (lastNetworkError) {
-    throw new Error(
-      'Не удалось подключиться к backend API. Проверьте, что сервер запущен на http://127.0.0.1:8787.',
-    );
+  if (lastError) {
+    throw lastError;
   }
 
   throw new Error('Не удалось получить данные от сервера.');

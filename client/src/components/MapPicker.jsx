@@ -1,51 +1,22 @@
 import { useEffect, useRef } from 'react';
-import Map from 'ol/Map.js';
-import View from 'ol/View.js';
 import Feature from 'ol/Feature.js';
+import Map from 'ol/Map.js';
 import Point from 'ol/geom/Point.js';
 import TileLayer from 'ol/layer/Tile.js';
 import VectorLayer from 'ol/layer/Vector.js';
-import OSM from 'ol/source/OSM.js';
-import VectorSource from 'ol/source/Vector.js';
+import View from 'ol/View.js';
 import { defaults as defaultControls } from 'ol/control/defaults.js';
+import TileSourceOSM from 'ol/source/OSM.js';
+import VectorSource from 'ol/source/Vector.js';
 import { fromLonLat, toLonLat } from 'ol/proj.js';
-import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style.js';
-
-const samaraCenter = [50.100202, 53.195878];
-
-const pickedPointStyle = new Style({
-  image: new CircleStyle({
-    radius: 7,
-    fill: new Fill({ color: '#facc15' }),
-    stroke: new Stroke({ color: '#d97706', width: 2 }),
-  }),
-});
-
-const nearbyStationStyle = new Style({
-  image: new CircleStyle({
-    radius: 5,
-    fill: new Fill({ color: '#334155' }),
-    stroke: new Stroke({ color: '#1f2937', width: 1.5 }),
-  }),
-});
-
-function createSelectedStationStyle(title) {
-  return new Style({
-    image: new CircleStyle({
-      radius: 9,
-      fill: new Fill({ color: '#111827' }),
-      stroke: new Stroke({ color: '#f8fafc', width: 3 }),
-    }),
-    text: new Text({
-      text: title,
-      offsetY: -18,
-      padding: [4, 6, 4, 6],
-      fill: new Fill({ color: '#111827' }),
-      backgroundFill: new Fill({ color: 'rgba(255, 255, 255, 0.96)' }),
-      backgroundStroke: new Stroke({ color: '#d9dde3', width: 1 }),
-    }),
-  });
-}
+import {
+  createSelectedStationStyle,
+  defaultMapCenter,
+  markerLayerName,
+  nearbyStationStyle,
+  pickedPointStyle,
+} from '../lib/map-config.js';
+import { getVectorLayerSourceByName } from '../lib/map-layers.js';
 
 function pointFeature(lon, lat, style, properties = {}) {
   const feature = new Feature({
@@ -66,7 +37,6 @@ export function MapPicker({
 }) {
   const mapNodeRef = useRef(null);
   const mapRef = useRef(null);
-  const vectorSourceRef = useRef(null);
   const onPickRef = useRef(onPickCoordinates);
   const onSelectStationRef = useRef(onSelectStation);
 
@@ -83,12 +53,12 @@ export function MapPicker({
       return undefined;
     }
 
-    const vectorSource = new VectorSource();
     const vectorLayer = new VectorLayer({
-      source: vectorSource,
+      source: new VectorSource(),
       updateWhileAnimating: true,
       updateWhileInteracting: true,
     });
+    vectorLayer.set('name', markerLayerName);
 
     const map = new Map({
       target: mapNodeRef.current,
@@ -97,12 +67,12 @@ export function MapPicker({
       }),
       layers: [
         new TileLayer({
-          source: new OSM(),
+          source: new TileSourceOSM(),
         }),
         vectorLayer,
       ],
       view: new View({
-        center: fromLonLat(samaraCenter),
+        center: fromLonLat(defaultMapCenter),
         zoom: 8,
         minZoom: 5,
         maxZoom: 17,
@@ -129,40 +99,42 @@ export function MapPicker({
       }
 
       const [lng, lat] = toLonLat(event.coordinate);
-
-      onPickRef.current({
-        lat,
-        lng,
-      });
+      onPickRef.current({ lat, lng });
     });
 
     mapRef.current = map;
-    vectorSourceRef.current = vectorSource;
 
-    const resizeObserver = new ResizeObserver(() => {
+    // OpenLayers needs an explicit size refresh after responsive/layout changes.
+    const resizeObserver =
+      typeof ResizeObserver === 'function'
+        ? new ResizeObserver(() => {
+            map.updateSize();
+          })
+        : null;
+
+    resizeObserver?.observe(mapNodeRef.current);
+    requestAnimationFrame(() => {
       map.updateSize();
     });
 
-    resizeObserver.observe(mapNodeRef.current);
-    map.updateSize();
-
     return () => {
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       map.setTarget(undefined);
       mapRef.current = null;
-      vectorSourceRef.current = null;
     };
   }, []);
 
   useEffect(() => {
-    if (!vectorSourceRef.current) {
+    const vectorSource = getVectorLayerSourceByName(mapRef.current, markerLayerName);
+
+    if (!vectorSource) {
       return;
     }
 
-    vectorSourceRef.current.clear();
+    vectorSource.clear();
 
     if (pickedPoint) {
-      vectorSourceRef.current.addFeature(pointFeature(pickedPoint.lng, pickedPoint.lat, pickedPointStyle));
+      vectorSource.addFeature(pointFeature(pickedPoint.lng, pickedPoint.lat, pickedPointStyle));
     }
 
     nearbyStations.forEach((station) => {
@@ -170,13 +142,11 @@ export function MapPicker({
         return;
       }
 
-      vectorSourceRef.current.addFeature(
-        pointFeature(station.longitude, station.latitude, nearbyStationStyle, { station }),
-      );
+      vectorSource.addFeature(pointFeature(station.longitude, station.latitude, nearbyStationStyle, { station }));
     });
 
     if (selectedStation?.longitude && selectedStation?.latitude) {
-      vectorSourceRef.current.addFeature(
+      vectorSource.addFeature(
         pointFeature(
           selectedStation.longitude,
           selectedStation.latitude,
@@ -193,6 +163,10 @@ export function MapPicker({
     }
 
     const view = mapRef.current.getView();
+
+    if (!view) {
+      return;
+    }
 
     if (selectedStation?.longitude && selectedStation?.latitude) {
       view.animate({

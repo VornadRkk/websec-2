@@ -27,9 +27,7 @@ export function ScheduleBoard({
           <p className="panel__eyebrow">Табло</p>
           <h2 className="panel__title">{station ? station.title : 'Табло станции'}</h2>
           <p className="panel__subtitle">
-            {station
-              ? `${station.settlementTitle || 'Станция'} · ${formatDate(date)}`
-              : 'Выберите станцию по названию или на карте.'}
+            {station ? `${station.settlementTitle || 'Станция'} · ${formatDate(date)}` : 'Выберите станцию по названию или на карте.'}
           </p>
         </div>
 
@@ -38,17 +36,17 @@ export function ScheduleBoard({
             <span>Дата</span>
             <input type="date" value={date} onChange={(event) => onDateChange(event.target.value)} />
           </label>
-          {station ? (
+          {station && (
             <button type="button" className="secondary-button" onClick={() => onToggleFavorite(station)}>
               {isFavorite ? 'Убрать из избранного' : 'В избранное'}
             </button>
-          ) : null}
+          )}
         </div>
       </div>
 
-      {!station ? renderEmptyState('После выбора станции здесь появится расписание прибытия и отправления.') : null}
+      {!station && renderEmptyState('После выбора станции здесь появится расписание прибытия и отправления.')}
 
-      {station ? (
+      {station && (
         <>
           <div className="segmented-control">
             <button
@@ -69,14 +67,12 @@ export function ScheduleBoard({
             </button>
           </div>
 
-          {loading ? <p className="panel__empty">Обновляю расписание...</p> : null}
-          {error ? <p className="error-banner">{error}</p> : null}
+          {loading && <p className="panel__empty">Обновляю расписание...</p>}
+          {error && <p className="error-banner">{error}</p>}
 
-          {!loading && !error && activeRows.length === 0
-            ? renderEmptyState('На выбранную дату для этой вкладки нет подходящих рейсов.')
-            : null}
+          {!loading && !error && activeRows.length === 0 && renderEmptyState('На выбранную дату для этой вкладки нет подходящих рейсов.')}
 
-          {!loading && !error && activeRows.length > 0 ? (
+          {!loading && !error && activeRows.length > 0 && (
             <div className="table-scroll">
               <table className="schedule-table">
                 <thead>
@@ -117,9 +113,9 @@ export function ScheduleBoard({
                 </tbody>
               </table>
             </div>
-          ) : null}
+          )}
         </>
-      ) : null}
+      )}
     </section>
   );
 }

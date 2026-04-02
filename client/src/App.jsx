@@ -6,9 +6,8 @@ import { ScheduleBoard } from './components/ScheduleBoard.jsx';
 import { useStationLookup } from './hooks/useStationLookup.js';
 import { api } from './lib/api.js';
 import { formatDate, formatDistance } from './lib/formatters.js';
+import { readFavorites, readTheme, saveFavorites, saveTheme, toFavoriteStation } from './lib/preferences.js';
 
-const favoritesStorageKey = 'train-arrival:favorites';
-const themeStorageKey = 'train-arrival:theme';
 const today = new Date().toISOString().slice(0, 10);
 
 function normalizeText(value) {
@@ -31,43 +30,6 @@ function isQueryForSelectedStation(query, station) {
   return [station.title, station.popularTitle, station.shortTitle]
     .filter(Boolean)
     .some((title) => normalizeText(title) === normalizedQuery);
-}
-
-function readFavorites() {
-  try {
-    const raw = window.localStorage.getItem(favoritesStorageKey);
-    const parsed = JSON.parse(raw || '[]');
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function readTheme() {
-  try {
-    const savedTheme = window.localStorage.getItem(themeStorageKey);
-
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      return savedTheme;
-    }
-  } catch {
-    return 'light';
-  }
-
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function toFavoriteStation(station) {
-  return {
-    code: station.code,
-    title: station.title,
-    popularTitle: station.popularTitle,
-    shortTitle: station.shortTitle,
-    latitude: station.latitude,
-    longitude: station.longitude,
-    settlementTitle: station.settlementTitle,
-    regionTitle: station.regionTitle,
-  };
 }
 
 export default function App() {
@@ -130,12 +92,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(favoritesStorageKey, JSON.stringify(favorites));
+    saveFavorites(favorites);
   }, [favorites]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem(themeStorageKey, theme);
+    saveTheme(theme);
   }, [theme]);
 
   useEffect(() => {
