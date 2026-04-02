@@ -57,7 +57,7 @@ YANDEX_STATION_CACHE_MINUTES=360
 Шаблон также есть в `.env.example`.
 
 
-### 3. Production-сборка и запуск
+### 3.Cборка и запуск
 
 ```bash
 npm run build
@@ -78,6 +78,5 @@ backend/
 client/    
 ```
 
----
 
 
