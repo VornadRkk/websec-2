@@ -26,14 +26,11 @@ function setCached(cacheKey, value, ttlMs) {
 }
 
 function buildRequestCandidates(pathname) {
-  const urls = [];
-
-  if (configuredApiOrigin && window.location.origin !== configuredApiOrigin) {
-    urls.push(`${configuredApiOrigin}${pathname}`);
+  if (configuredApiOrigin) {
+    return [`${configuredApiOrigin}${pathname}`];
   }
 
-  urls.push(pathname);
-  return [...new Set(urls)];
+  return [pathname];
 }
 
 async function performRequest(url, signal) {
@@ -78,6 +75,12 @@ async function request(pathname, { signal, cacheKey, ttlMs = 0 } = {}) {
   }
 
   if (lastError) {
+    if (configuredApiOrigin) {
+      throw new Error(
+        `Не удалось подключиться к backend API. Проверьте, что сервер запущен на ${configuredApiOrigin}.`,
+      );
+    }
+
     throw lastError;
   }
 
