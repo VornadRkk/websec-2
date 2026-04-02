@@ -3,13 +3,7 @@ import express from 'express';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import {
-  assertLiveApi,
-  fetchCopyright,
-  fetchRoutes,
-  fetchStationSchedule,
-  getUsageSnapshot,
-} from './lib/yandex-rasp-client.js';
+import { assertLiveApi, fetchRoutes, fetchStationSchedule, getUsageSnapshot } from './lib/yandex-rasp-client.js';
 import {
   getNearbyStations,
   getStationByCode,
@@ -71,11 +65,6 @@ app.get('/api/meta', async (_request, response) => {
 
     const usage = await getUsageSnapshot();
     const index = await getStationIndexStatus();
-    const copyright = await fetchCopyright().catch(() => ({
-      text: 'Данные предоставлены сервисом Яндекс Расписания',
-      url: 'https://rasp.yandex.ru/',
-      logo: '',
-    }));
 
     response.json({
       usage,
@@ -84,7 +73,6 @@ app.get('/api/meta', async (_request, response) => {
         count: index.stations.length,
         updatedAt: index.updatedAt,
       },
-      copyright,
     });
   } catch (error) {
     response.status(500).json({ message: error.message });

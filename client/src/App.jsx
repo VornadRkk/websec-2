@@ -455,17 +455,7 @@ export default function App() {
         </aside>
       </div>
 
-      <footer className="app-footer">
-        <span>{meta?.copyright?.text || 'Данные предоставлены сервисом Яндекс Расписания'}</span>
-        <a
-          className="inline-link"
-          href={meta?.copyright?.url || 'https://rasp.yandex.ru/'}
-          target="_blank"
-          rel="noreferrer"
-        >
-          rasp.yandex.ru
-        </a>
-      </footer>
+      <footer className="app-footer" />
     </div>
   );
 }

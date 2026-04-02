@@ -151,20 +151,3 @@ export async function fetchRoutes({ from, to, date, transfers = false }) {
     },
   );
 }
-
-export async function fetchCopyright() {
-  const response = await callYandex(
-    '/copyright/',
-    { format: 'json' },
-    {
-      cacheKey: 'meta:copyright',
-      ttlMs: 1000 * 60 * 60 * 24 * 7,
-    },
-  );
-
-  return {
-    text: response?.copyright?.text || 'Данные предоставлены сервисом Яндекс Расписания',
-    url: response?.copyright?.url || 'https://rasp.yandex.ru/',
-    logo: response?.copyright?.logo_hm || response?.copyright?.logo_hd || '',
-  };
-}
